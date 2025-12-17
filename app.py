@@ -39,28 +39,34 @@ for key, name in parts.items():
 
 # SVG car diagram
 svg = f"""
-<svg width="500" height="800" viewBox="0 0 500 800">
+<svg width="900" height="400" viewBox="0 0 900 400">
 
+  <!-- ===== LEFT SIDE VIEW ===== -->
+  <path d="M50,80 C20,140 20,260 50,320 L120,340 L160,280 L160,120 L120,60 Z"
+        fill="{get_color(values['fl_door'])}" stroke="#cfd8dc"/>
+
+  <path d="M120,60 L200,50 L220,100 L220,300 L200,350 L120,340 Z"
+        fill="{get_color(values['rl_door'])}" stroke="#cfd8dc"/>
+
+  <!-- ===== TOP VIEW ===== -->
   <!-- Hood -->
-  <rect x="150" y="50" width="200" height="120" fill="{get_color(values['hood'])}" />
+  <path d="M350,40 C420,10 480,10 550,40 L530,120 L370,120 Z"
+        fill="{get_color(values['hood'])}" stroke="#cfd8dc"/>
 
   <!-- Roof -->
-  <rect x="150" y="200" width="200" height="150" fill="{get_color(values['roof'])}" />
+  <path d="M370,120 C420,90 480,90 530,120 L530,260 L370,260 Z"
+        fill="{get_color(values['roof'])}" stroke="#cfd8dc"/>
 
   <!-- Trunk -->
-  <rect x="150" y="380" width="200" height="120" fill="{get_color(values['trunk'])}" />
+  <path d="M370,260 L530,260 L550,340 C480,370 420,370 350,340 Z"
+        fill="{get_color(values['trunk'])}" stroke="#cfd8dc"/>
 
-  <!-- Front Left Door -->
-  <rect x="80" y="220" width="60" height="130" fill="{get_color(values['fl_door'])}" />
+  <!-- ===== RIGHT SIDE VIEW ===== -->
+  <path d="M740,60 L700,120 L700,280 L740,340 L820,320 C850,260 850,140 820,80 Z"
+        fill="{get_color(values['fr_door'])}" stroke="#cfd8dc"/>
 
-  <!-- Rear Left Door -->
-  <rect x="80" y="360" width="60" height="130" fill="{get_color(values['rl_door'])}" />
-
-  <!-- Front Right Door -->
-  <rect x="360" y="220" width="60" height="130" fill="{get_color(values['fr_door'])}" />
-
-  <!-- Rear Right Door -->
-  <rect x="360" y="360" width="60" height="130" fill="{get_color(values['rr_door'])}" />
+  <path d="M680,50 L740,60 L740,340 L680,350 L660,300 L660,100 Z"
+        fill="{get_color(values['rr_door'])}" stroke="#cfd8dc"/>
 
 </svg>
 """
