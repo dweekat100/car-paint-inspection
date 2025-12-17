@@ -1,87 +1,77 @@
 import streamlit as st
 
-st.set_page_config(page_title="Car Paint Inspection", layout="wide")
+# Page setup
+st.set_page_config(layout="wide")
+st.title("🚗 Car Body Paint Thickness Inspection")
 
-st.title("🚗 Car Paint Thickness Inspection")
-
-# --- Color logic ---
-def thickness_to_color(value):
-    if value <= 160:
-        return "#7EE3A1"   # light green
-    elif value <= 300:
-        return "#3BAE6A"   # medium green
-    else:
-        return "#0B5D2A"   # dark green
-
-# --- User input ---
-st.sidebar.header("Paint Thickness (µm)")
-
-panels = {
-    "hood": st.sidebar.number_input("Hood", 0, 1000, 120),
-    "roof": st.sidebar.number_input("Roof", 0, 1000, 180),
-    "trunk": st.sidebar.number_input("Trunk", 0, 1000, 140),
-    "front_left": st.sidebar.number_input("Front Left Door", 0, 1000, 220),
-    "rear_left": st.sidebar.number_input("Rear Left Door", 0, 1000, 260),
-    "front_right": st.sidebar.number_input("Front Right Door", 0, 1000, 210),
-    "rear_right": st.sidebar.number_input("Rear Right Door", 0, 1000, 310),
+# Car body parts
+parts = {
+    "hood": "Hood",
+    "roof": "Roof",
+    "trunk": "Trunk",
+    "fl_door": "Front Left Door",
+    "fr_door": "Front Right Door",
+    "rl_door": "Rear Left Door",
+    "rr_door": "Rear Right Door"
 }
 
-colors = {k: thickness_to_color(v) for k, v in panels.items()}
+# Color logic based on thickness
+def get_color(value):
+    if value <= 160:
+        return "#8EE4A1"   # Original paint
+    elif value <= 300:
+        return "#3FAF6C"   # Repainted
+    else:
+        return "#0B3D1F"   # Heavy repair
 
-# --- SVG ---
+# Sidebar input
+st.sidebar.header("Paint Thickness Input (µm)")
+values = {}
+
+for key, name in parts.items():
+    values[key] = st.sidebar.number_input(
+        name,
+        min_value=0,
+        max_value=1000,
+        value=120,
+        step=1
+    )
+
+# SVG car diagram
 svg = f"""
-<svg viewBox="0 0 800 400" width="100%" xmlns="http://www.w3.org/2000/svg">
-
-  <!-- Car body outline -->
-  <rect x="150" y="60" rx="80" ry="80" width="500" height="280" fill="#f4f6f8"/>
+<svg width="500" height="800" viewBox="0 0 500 800">
 
   <!-- Hood -->
-  <path id="hood"
-        d="M300 70 H500 V130 H300 Z"
-        fill="{colors['hood']}" stroke="#999"/>
+  <rect x="150" y="50" width="200" height="120" fill="{get_color(values['hood'])}" />
 
   <!-- Roof -->
-  <path id="roof"
-        d="M330 130 H470 V210 H330 Z"
-        fill="{colors['roof']}" stroke="#999"/>
+  <rect x="150" y="200" width="200" height="150" fill="{get_color(values['roof'])}" />
 
   <!-- Trunk -->
-  <path id="trunk"
-        d="M300 210 H500 V270 H300 Z"
-        fill="{colors['trunk']}" stroke="#999"/>
+  <rect x="150" y="380" width="200" height="120" fill="{get_color(values['trunk'])}" />
 
-  <!-- Left doors -->
-  <path id="front_left"
-        d="M220 130 H300 V210 H220 Z"
-        fill="{colors['front_left']}" stroke="#999"/>
+  <!-- Front Left Door -->
+  <rect x="80" y="220" width="60" height="130" fill="{get_color(values['fl_door'])}" />
 
-  <path id="rear_left"
-        d="M180 150 H220 V230 H180 Z"
-        fill="{colors['rear_left']}" stroke="#999"/>
+  <!-- Rear Left Door -->
+  <rect x="80" y="360" width="60" height="130" fill="{get_color(values['rl_door'])}" />
 
-  <!-- Right doors -->
-  <path id="front_right"
-        d="M500 130 H580 V210 H500 Z"
-        fill="{colors['front_right']}" stroke="#999"/>
+  <!-- Front Right Door -->
+  <rect x="360" y="220" width="60" height="130" fill="{get_color(values['fr_door'])}" />
 
-  <path id="rear_right"
-        d="M580 150 H620 V230 H580 Z"
-        fill="{colors['rear_right']}" stroke="#999"/>
-
-  <!-- Wheels -->
-  <circle cx="260" cy="330" r="28" fill="#ccc"/>
-  <circle cx="540" cy="330" r="28" fill="#ccc"/>
+  <!-- Rear Right Door -->
+  <rect x="360" y="360" width="60" height="130" fill="{get_color(values['rr_door'])}" />
 
 </svg>
 """
 
+# Display diagram
 st.markdown(svg, unsafe_allow_html=True)
 
-# --- Legend ---
+# Legend
 st.markdown("""
-### 🎨 Thickness Legend
-- 🟩 **60–160 µm** (Original paint)
-- 🟢 **161–300 µm** (Repaint)
-- 🟢⬛ **301+ µm** (Heavy repaint / filler)
+### 🎨 Legend
+- 🟢 **60–160 µm** → Original Paint  
+- 🟩 **161–300 µm** → Repainted  
+- ⬛ **301+ µm** → Heavy Repair / Filler
 """)
-
