@@ -1,3 +1,5 @@
+import streamlit.components.v1 as components
+
 import streamlit as st
 
 st.set_page_config(page_title="Car Paint Inspection", layout="wide")
@@ -75,7 +77,8 @@ svg = f"""
 </svg>
 """
 
-st.markdown(svg, unsafe_allow_html=True)
+components.html(svg, height=450)
+
 
 # --- Legend ---
 st.markdown("""
