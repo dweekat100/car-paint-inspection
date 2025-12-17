@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Page setup
 st.set_page_config(layout="wide")
@@ -39,40 +40,39 @@ for key, name in parts.items():
 
 # SVG car diagram
 svg = f"""
-<svg width="900" height="400" viewBox="0 0 900 400">
+<div style="display:flex; justify-content:center;">
+<svg width="900" height="380" viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
 
-  <!-- ===== LEFT SIDE VIEW ===== -->
-  <path d="M50,80 C20,140 20,260 50,320 L120,340 L160,280 L160,120 L120,60 Z"
-        fill="{get_color(values['fl_door'])}" stroke="#cfd8dc"/>
+  <!-- LEFT SIDE -->
+  <path d="M70,70 C30,150 30,230 70,310 L140,330 L180,260 L180,120 L140,50 Z"
+        fill="{get_color(values['fl_door'])}" />
 
-  <path d="M120,60 L200,50 L220,100 L220,300 L200,350 L120,340 Z"
-        fill="{get_color(values['rl_door'])}" stroke="#cfd8dc"/>
+  <path d="M140,50 L220,40 L250,110 L250,270 L220,340 L140,330 Z"
+        fill="{get_color(values['rl_door'])}" />
 
-  <!-- ===== TOP VIEW ===== -->
-  <!-- Hood -->
-  <path d="M350,40 C420,10 480,10 550,40 L530,120 L370,120 Z"
-        fill="{get_color(values['hood'])}" stroke="#cfd8dc"/>
+  <!-- TOP VIEW -->
+  <path d="M380,30 C440,0 520,0 580,30 L560,110 L400,110 Z"
+        fill="{get_color(values['hood'])}" />
 
-  <!-- Roof -->
-  <path d="M370,120 C420,90 480,90 530,120 L530,260 L370,260 Z"
-        fill="{get_color(values['roof'])}" stroke="#cfd8dc"/>
+  <path d="M400,110 C450,80 510,80 560,110 L560,250 L400,250 Z"
+        fill="{get_color(values['roof'])}" />
 
-  <!-- Trunk -->
-  <path d="M370,260 L530,260 L550,340 C480,370 420,370 350,340 Z"
-        fill="{get_color(values['trunk'])}" stroke="#cfd8dc"/>
+  <path d="M400,250 L560,250 L580,330 C520,360 440,360 380,330 Z"
+        fill="{get_color(values['trunk'])}" />
 
-  <!-- ===== RIGHT SIDE VIEW ===== -->
-  <path d="M740,60 L700,120 L700,280 L740,340 L820,320 C850,260 850,140 820,80 Z"
-        fill="{get_color(values['fr_door'])}" stroke="#cfd8dc"/>
+  <!-- RIGHT SIDE -->
+  <path d="M720,40 L760,50 L760,330 L720,340 L690,270 L690,110 Z"
+        fill="{get_color(values['rr_door'])}" />
 
-  <path d="M680,50 L740,60 L740,340 L680,350 L660,300 L660,100 Z"
-        fill="{get_color(values['rr_door'])}" stroke="#cfd8dc"/>
+  <path d="M760,50 L830,70 C870,150 870,230 830,310 L760,330 Z"
+        fill="{get_color(values['fr_door'])}" />
 
 </svg>
+</div>
 """
 
 # Display diagram
-st.markdown(svg, unsafe_allow_html=True)
+components.html(svg, height=420)
 
 # Legend
 st.markdown("""
