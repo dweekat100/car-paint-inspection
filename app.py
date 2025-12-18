@@ -23,10 +23,10 @@ parts = [
     "roof",
     "roof_edge_left",
     "roof_edge_right",
-    "right_step"
-    "left_step"
-    "roof_edg_Left"
-    "roof_edg_right"
+    "right_step",
+    "left_step",
+    "roof_edg_Left",
+    "roof_edg_right",
 ]
 
 # -----------------------------
