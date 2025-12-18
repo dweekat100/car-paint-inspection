@@ -1,10 +1,13 @@
 import streamlit as st
 
+# -----------------------------
+# Page setup
+# -----------------------------
 st.set_page_config(layout="wide")
 st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts list (EXACT SVG IDs)
+# Parts (MUST MATCH SVG IDs EXACTLY)
 # -----------------------------
 parts = [
     "rear left fender",
@@ -49,25 +52,31 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG
+# Load SVG file
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
-    svg = f.read()
+    svg_content = f.read()
 
 # -----------------------------
-# Inject colors (WORKING WAY)
+# Build FORCE CSS (IMPORTANT)
 # -----------------------------
+css = "<style>\n"
+
 for part, thickness in values.items():
-    color = get_color(thickness)
-    svg = svg.replace(
-        f'id="{part}"',
-        f'id="{part}" style="fill:{color};"'
-    )
+    css += f'''
+    #{part} {{
+        fill: {get_color(thickness)} !important;
+        stroke: #ffffff;
+        stroke-width: 1;
+    }}
+    '''
+
+css += "</style>\n"
 
 # -----------------------------
-# Display SVG
+# Render SVG with CSS injected
 # -----------------------------
-st.markdown(svg, unsafe_allow_html=True)
+st.markdown(css + svg_content, unsafe_allow_html=True)
 
 # -----------------------------
 # Legend
