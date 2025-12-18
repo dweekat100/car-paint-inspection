@@ -9,21 +9,21 @@ st.title("🚗 car body paint thickness inspection")
 # -----------------------------
 # Parts (SVG IDs → display names)
 # -----------------------------
-parts = {
-    "rear_left_fender": "rear left fender",
-    "rear_right_fender": "rear right fender",
-    "rear_left_door": "rear left door",
-    "rear_right_door": "rear right door",
-    "front_left_fender": "front left fender",
-    "front_right_fender": "front right fender",
-    "front_left_door": "front left door",
-    "front_right_door": "front right door",
-    "hood": "hood",
-    "trunk": "trunk",
-    "roof": "roof",
-    "roof_edge_left": "roof edge left",
-    "roof_edge_right": "roof edge right",
-}
+parts = [
+    "rear left fender",
+   "rear right fender",
+   "rear left door",
+   "rear right door",
+    "front left fender",
+    "front right fender",
+   "front left door",
+   "front right door",
+   "hood",
+   "trunk",
+   "roof",
+   "roof edge left",
+   "roof edge right",
+]
 
 # -----------------------------
 # Color logic (same idea as your example)
