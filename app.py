@@ -10,7 +10,7 @@ st.title("🚗 car body paint thickness inspection")
 # Parts (SVG IDs MUST MATCH)
 # -----------------------------
 parts = [
-    "rear left fender",
+    "rear_left_fender",
     "rear right fender",
     "rear left door",
     "rear right door",
