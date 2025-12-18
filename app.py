@@ -63,15 +63,41 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
 # -----------------------------
 # Apply colors to SVG (CORRECT WAY)
 # -----------------------------
+
+def set_svg_fill(svg, part_id, color):
+    # remove fill from style attribute if it exists
+    svg = re.sub(
+        rf'(id="{part_id}"[^>]*style="[^"]*)fill:[^;"]*;?',
+        rf'\1',
+        svg
+    )
+
+    # replace existing fill attribute
+    if re.search(rf'id="{part_id}"[^>]*fill=', svg):
+        svg = re.sub(
+            rf'(id="{part_id}"[^>]*fill=")[^"]*(")',
+            rf'\1{color}\2',
+            svg
+        )
+    else:
+        # inject fill attribute if missing
+        svg = re.sub(
+            rf'(id="{part_id}")',
+            rf'\1 fill="{color}"',
+            svg
+        )
+
+    return svg
+
+
+# -----------------------------
+# Apply colors to SVG (FINAL)
+# -----------------------------
 svg_colored = svg_template
 
 for part_id, thickness in values.items():
     color = get_color(thickness)
-
-    pattern = rf'(id="{part_id}"[^>]*fill=")(#[A-Fa-f0-9]{{3,6}}|none)(")'
-    replacement = rf'\1{color}\3'
-
-    svg_colored = re.sub(pattern, replacement, svg_colored)
+    svg_colored = set_svg_fill(svg_colored, part_id, color)
 
 # -----------------------------
 # Display SVG
