@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts (SVG IDs)
+# Parts (SVG IDs — lowercase, spaces)
 # -----------------------------
 parts = [
     "rear left fender",
@@ -32,11 +32,11 @@ parts = [
 # -----------------------------
 def get_color(value):
     if value <= 160:
-        return "#8EE4A1"   # original
+        return "#66D98C"   # original paint
     elif value <= 300:
-        return "#3FAF6C"   # repainted
+        return "#2E8B57"   # repainted
     else:
-        return "#0B3D1F"   # heavy repair
+        return "#1F1F1F"   # heavy repair / filler
 
 # -----------------------------
 # Sidebar inputs
@@ -54,35 +54,34 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG
+# Load SVG file (EXACT NAME)
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg_data = f.read()
 
 # -----------------------------
-# Parse SVG properly (THIS IS THE FIX)
+# Parse SVG safely
 # -----------------------------
 ET.register_namespace("", "http://www.w3.org/2000/svg")
-tree = ET.ElementTree(ET.fromstring(svg_data))
-root = tree.getroot()
+root = ET.fromstring(svg_data)
+tree = ET.ElementTree(root)
 
 # -----------------------------
-# Apply colors by ID
+# Apply colors to SVG parts
 # -----------------------------
 for element in root.iter():
     part_id = element.attrib.get("id")
+
     if part_id in values:
         color = get_color(values[part_id])
 
-        # remove style fill if exists
-        style = element.attrib.get("style", "")
-        style = ";".join(
-            s for s in style.split(";") if not s.strip().startswith("fill:")
-        )
+        # Remove all previous styling that affects color
+        element.attrib.pop("style", None)
 
-        # apply new fill
-        element.set("style", f"{style};fill:{color}")
+        # Force fill and opacity
         element.set("fill", color)
+        element.set("fill-opacity", "1")
+        element.set("opacity", "1")
 
 # -----------------------------
 # Convert SVG back to string
