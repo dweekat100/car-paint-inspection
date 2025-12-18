@@ -11,18 +11,22 @@ st.title("🚗 car body paint thickness inspection")
 # -----------------------------
 parts = [
     "rear_left_fender",
-    "rear right fender",
-    "rear left door",
-    "rear right door",
-    "front left fender",
-    "front right fender",
-    "front left door",
-    "front right door",
+    "rear_right_fender",
+    "rear_left_door",
+    "rear_right_door",
+    "front_left_fender",
+    "front_right_fender",
+    "front_left_door",
+    "front_right_door",
     "hood",
     "trunk",
     "roof",
-    "roof edge left",
-    "roof edge right",
+    "roof_edge_left",
+    "roof_edge_right",
+    "right_step"
+    "left_step"
+    "roof_edg_Left"
+    "roof_edg_right"
 ]
 
 # -----------------------------
