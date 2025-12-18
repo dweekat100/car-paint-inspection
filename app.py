@@ -31,7 +31,7 @@ RESULT_COLORS = {
 # --------------------------------
 # LOAD SVG
 # --------------------------------
-with open("car_top_view.svg", "r", encoding="utf-8") as f:
+with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg_template = f.read()
 
 # --------------------------------
