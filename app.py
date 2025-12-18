@@ -1,5 +1,6 @@
 import streamlit as st
-import re
+import xml.etree.ElementTree as ET
+from io import StringIO
 
 # -----------------------------
 # Page setup
@@ -8,32 +9,30 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts
-# key   = SVG id (NO SPACES)
-# value = display name (WITH SPACES)
+# Parts (SVG IDs)
 # -----------------------------
-parts = {
-    "rear_left_fender": "rear left fender",
-    "rear_right_fender": "rear right fender",
-    "rear_left_door": "rear left door",
-    "rear_right_door": "rear right door",
-    "front_left_fender": "front left fender",
-    "front_right_fender": "front right fender",
-    "front_left_door": "front left door",
-    "front_right_door": "front right door",
-    "hood": "hood",
-    "trunk": "trunk",
-    "roof": "roof",
-    "roof_edge_left": "roof edge left",
-    "roof_edge_right": "roof edge right",
-}
+parts = [
+    "rear left fender",
+    "rear right fender",
+    "rear left door",
+    "rear right door",
+    "front left fender",
+    "front right fender",
+    "front left door",
+    "front right door",
+    "hood",
+    "trunk",
+    "roof",
+    "roof edge left",
+    "roof edge right",
+]
 
 # -----------------------------
 # Color logic
 # -----------------------------
 def get_color(value):
     if value <= 160:
-        return "#8EE4A1"   # original paint
+        return "#8EE4A1"   # original
     elif value <= 300:
         return "#3FAF6C"   # repainted
     else:
@@ -45,9 +44,9 @@ def get_color(value):
 st.sidebar.header("paint thickness input (µm)")
 values = {}
 
-for part_id, display_name in parts.items():
-    values[part_id] = st.sidebar.number_input(
-        display_name,
+for part in parts:
+    values[part] = st.sidebar.number_input(
+        part,
         min_value=0,
         max_value=1000,
         value=120,
@@ -55,49 +54,42 @@ for part_id, display_name in parts.items():
     )
 
 # -----------------------------
-# Load SVG file
+# Load SVG
 # -----------------------------
-with open("car top view svg.svg", "r", encoding="utf-8") as f:
-    svg_template = f.read()
+with open("car_top_view.svg", "r", encoding="utf-8") as f:
+    svg_data = f.read()
 
 # -----------------------------
-# Apply colors to SVG (CORRECT WAY)
+# Parse SVG properly (THIS IS THE FIX)
 # -----------------------------
+ET.register_namespace("", "http://www.w3.org/2000/svg")
+tree = ET.ElementTree(ET.fromstring(svg_data))
+root = tree.getroot()
 
-def set_svg_fill(svg, part_id, color):
-    # remove fill from style attribute if it exists
-    svg = re.sub(
-        rf'(id="{part_id}"[^>]*style="[^"]*)fill:[^;"]*;?',
-        rf'\1',
-        svg
-    )
+# -----------------------------
+# Apply colors by ID
+# -----------------------------
+for element in root.iter():
+    part_id = element.attrib.get("id")
+    if part_id in values:
+        color = get_color(values[part_id])
 
-    # replace existing fill attribute
-    if re.search(rf'id="{part_id}"[^>]*fill=', svg):
-        svg = re.sub(
-            rf'(id="{part_id}"[^>]*fill=")[^"]*(")',
-            rf'\1{color}\2',
-            svg
-        )
-    else:
-        # inject fill attribute if missing
-        svg = re.sub(
-            rf'(id="{part_id}")',
-            rf'\1 fill="{color}"',
-            svg
+        # remove style fill if exists
+        style = element.attrib.get("style", "")
+        style = ";".join(
+            s for s in style.split(";") if not s.strip().startswith("fill:")
         )
 
-    return svg
-
+        # apply new fill
+        element.set("style", f"{style};fill:{color}")
+        element.set("fill", color)
 
 # -----------------------------
-# Apply colors to SVG (FINAL)
+# Convert SVG back to string
 # -----------------------------
-svg_colored = svg_template
-
-for part_id, thickness in values.items():
-    color = get_color(thickness)
-    svg_colored = set_svg_fill(svg_colored, part_id, color)
+output = StringIO()
+tree.write(output, encoding="unicode")
+svg_colored = output.getvalue()
 
 # -----------------------------
 # Display SVG
