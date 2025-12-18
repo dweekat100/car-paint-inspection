@@ -7,7 +7,7 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts (must match SVG IDs EXACTLY)
+# Parts (SVG IDs MUST MATCH)
 # -----------------------------
 parts = [
     "rear left fender",
@@ -28,13 +28,13 @@ parts = [
 # -----------------------------
 # Color logic
 # -----------------------------
-def get_color(value):
-    if value <= 160:
-        return "#8EE4A1"   # original paint
-    elif value <= 300:
-        return "#3FAF6C"   # repainted
+def get_color(v):
+    if v <= 160:
+        return "#8EE4A1"
+    elif v <= 300:
+        return "#3FAF6C"
     else:
-        return "#0B3D1F"   # heavy repair
+        return "#0B3D1F"
 
 # -----------------------------
 # Sidebar inputs
@@ -52,21 +52,21 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG file
+# Load SVG
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# Inject colors using CSS (CORRECT WAY)
+# CSS color injection
 # -----------------------------
 style = "<style>"
-for part, thickness in values.items():
-    style += f"""
-    #{part} {{
-        fill: {get_color(thickness)} !important;
-    }}
-    """
+for part, val in values.items():
+    style += (
+        f"#{part} {{ "
+        f"fill: {get_color(val)} !important; "
+        f"}} "
+    )
 style += "</style>"
 
 # -----------------------------
@@ -75,13 +75,11 @@ style += "</style>"
 st.markdown(style + svg, unsafe_allow_html=True)
 
 # -----------------------------
-# Legend (NO EMOJIS THAT BREAK PYTHON)
+# Legend (SAFE STRING)
 # -----------------------------
-st.markdown("""
-### legend
-- ≤160 µm → original paint  
-- 161–300 µm → repainted  
-- >300 µm → heavy repair / filler
-""")
-
-""")
+st.markdown(
+    "### legend\n"
+    "- ≤160 µm → original paint\n"
+    "- 161–300 µm → repainted\n"
+    "- >300 µm → heavy repair / filler"
+)
