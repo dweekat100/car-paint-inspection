@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts (SVG IDs — lowercase, spaces)
+# Parts (SVG IDs)
 # -----------------------------
 parts = [
     "rear left fender",
@@ -32,11 +32,11 @@ parts = [
 # -----------------------------
 def get_color(value):
     if value <= 160:
-        return "#66D98C"   # original paint
+        return "#66D98C"   # original
     elif value <= 300:
         return "#2E8B57"   # repainted
     else:
-        return "#1F1F1F"   # heavy repair / filler
+        return "#1F1F1F"   # heavy repair
 
 # -----------------------------
 # Sidebar inputs
@@ -54,40 +54,40 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG file (EXACT NAME)
+# Load SVG
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg_data = f.read()
 
-# -----------------------------
-# Parse SVG safely
-# -----------------------------
 ET.register_namespace("", "http://www.w3.org/2000/svg")
 root = ET.fromstring(svg_data)
-tree = ET.ElementTree(root)
 
 # -----------------------------
-# Apply colors to SVG parts
+# FUNCTION: force color on element + children
+# -----------------------------
+def force_color(element, color):
+    element.attrib.pop("style", None)
+    element.set("fill", color)
+    element.set("fill-opacity", "1")
+    element.set("opacity", "1")
+
+    for child in element:
+        force_color(child, color)
+
+# -----------------------------
+# Apply colors (CORRECT WAY)
 # -----------------------------
 for element in root.iter():
     part_id = element.attrib.get("id")
-
     if part_id in values:
         color = get_color(values[part_id])
-
-        # Remove all previous styling that affects color
-        element.attrib.pop("style", None)
-
-        # Force fill and opacity
-        element.set("fill", color)
-        element.set("fill-opacity", "1")
-        element.set("opacity", "1")
+        force_color(element, color)
 
 # -----------------------------
 # Convert SVG back to string
 # -----------------------------
 output = StringIO()
-tree.write(output, encoding="unicode")
+ET.ElementTree(root).write(output, encoding="unicode")
 svg_colored = output.getvalue()
 
 # -----------------------------
