@@ -1,12 +1,15 @@
 import streamlit as st
 
+# -----------------------------
+# Page setup
+# -----------------------------
 st.set_page_config(layout="wide")
-st.title("car body paint inspection")
+st.title("🚗 car body paint thickness inspection")
 
-# --------------------------------
-# PART DEFINITIONS
-# --------------------------------
-PARTS = {
+# -----------------------------
+# Parts (SVG IDs → display names)
+# -----------------------------
+parts = {
     "rear_left_fender": "rear left fender",
     "rear_right_fender": "rear right fender",
     "rear_left_door": "rear left door",
@@ -22,45 +25,61 @@ PARTS = {
     "roof_edge_right": "roof edge right",
 }
 
-RESULT_COLORS = {
-    "ok": "#4CAF50",
-    "repainted": "#FFC107",
-    "damaged": "#F44336"
-}
+# -----------------------------
+# Color logic (same idea as your example)
+# -----------------------------
+def get_color(value):
+    if value <= 160:
+        return "#8EE4A1"   # original paint
+    elif value <= 300:
+        return "#3FAF6C"   # repainted
+    else:
+        return "#0B3D1F"   # heavy repair
 
-# --------------------------------
-# LOAD SVG
-# --------------------------------
-with open("car top view svg.svg", "r", encoding="utf-8") as f:
-    svg_template = f.read()
+# -----------------------------
+# Sidebar inputs
+# -----------------------------
+st.sidebar.header("paint thickness input (µm)")
+values = {}
 
-# --------------------------------
-# USER INPUT
-# --------------------------------
-st.sidebar.header("inspection results")
-
-results = {}
-for part_id, display_name in PARTS.items():
-    results[part_id] = st.sidebar.selectbox(
-        display_name,
-        ["ok", "repainted", "damaged"],
-        index=0
+for part_id, name in parts.items():
+    values[part_id] = st.sidebar.number_input(
+        name,
+        min_value=0,
+        max_value=1000,
+        value=120,
+        step=1
     )
 
-# --------------------------------
-# APPLY COLORS
-# --------------------------------
+# -----------------------------
+# Load SVG file
+# -----------------------------
+with open("car_top_view.svg", "r", encoding="utf-8") as f:
+    svg_template = f.read()
+
+# -----------------------------
+# Apply colors to SVG
+# -----------------------------
 svg_colored = svg_template
 
-for part_id, status in results.items():
-    color = RESULT_COLORS[status]
+for part_id, thickness in values.items():
+    color = get_color(thickness)
     svg_colored = svg_colored.replace(
         f'id="{part_id}"',
         f'id="{part_id}" fill="{color}"'
     )
 
-# --------------------------------
-# DISPLAY SVG
-# --------------------------------
-st.subheader("inspection result (top view)")
-st.components.v1.html(svg_colored, height=700)
+# -----------------------------
+# Display SVG
+# -----------------------------
+st.markdown(svg_colored, unsafe_allow_html=True)
+
+# -----------------------------
+# Legend
+# -----------------------------
+st.markdown("""
+### 🎨 legend
+- 🟢 **≤160 µm** → original paint  
+- 🟩 **161–300 µm** → repainted  
+- ⬛ **>300 µm** → heavy repair / filler
+""")
