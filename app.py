@@ -4,10 +4,10 @@ import streamlit as st
 # Page setup
 # -----------------------------
 st.set_page_config(layout="wide")
-st.title("🚗 car body paint thickness inspection")
+st.title("🚗 car body paint & surface inspection")
 
 # -----------------------------
-# Parts (SVG IDs MUST MATCH)
+# Parts (SVG IDs MUST MATCH EXACTLY)
 # -----------------------------
 parts = [
     "rear_left_fender",
@@ -30,53 +30,64 @@ parts = [
 ]
 
 # -----------------------------
-# Color logic
+# Paint color logic
 # -----------------------------
-# 'def get_color(v):
-#     'if v <= 160:
-#        ' return "#8EE4A1"
-#     'elif v <= 300:
-#        ' return "#3FAF6C"
-#     'else:
-#         'return "#0B3D1F"
-
 def get_color(condition):
-    return {
-        "Original paint": "#8EE4A1",
-        "Repainted": "#3FAF6C",
-        "Heavy repair / filler": "#0B3D1F",
-    }[condition]
+    if condition == "Original paint":
+        return "#8EE4A1"
+    elif condition == "Repainted":
+        return "#3FAF6C"
+    else:
+        return "#0B3D1F"
+
+# -----------------------------
+# Defect style logic
+# -----------------------------
+def get_defect_style(defect):
+    if defect == "Scratch":
+        return "stroke: #000; stroke-width: 2; stroke-dasharray: 6,4;"
+    elif defect == "Denting":
+        return "stroke: #000; stroke-width: 2; stroke-dasharray: 2,6;"
+    else:
+        return ""
 
 # -----------------------------
 # Sidebar inputs
 # -----------------------------
-# 'st.sidebar.header("paint thickness input (µm)")
-# 'values = {}
+st.sidebar.header("inspection input")
 
-# 'for part in parts:
-#     'values[part] = st.sidebar.number_input(
-#        ' part,
-#        ' min_value=0,
-#        ' max_value=2000,
-#         'value=120,
-#        ' step=10
-#    ' )
-st.sidebar.header("paint condition")
-
-values = {}
-
-options = [
+paint_options = [
     "Original paint",
     "Repainted",
     "Heavy repair / filler",
 ]
 
+defect_options = [
+    "None",
+    "Scratch",
+    "Denting",
+]
+
+paint_values = {}
+defect_values = {}
+
 for part in parts:
-    values[part] = st.sidebar.selectbox(
-        part.replace("_", " "),
-        options,
-        index=0
+    st.sidebar.markdown(f"**{part.replace('_',' ')}**")
+
+    paint_values[part] = st.sidebar.selectbox(
+        "Paint condition",
+        paint_options,
+        key=f"paint_{part}"
     )
+
+    defect_values[part] = st.sidebar.selectbox(
+        "Surface defect",
+        defect_options,
+        key=f"defect_{part}"
+    )
+
+    st.sidebar.markdown("---")
+
 # -----------------------------
 # Load SVG
 # -----------------------------
@@ -84,21 +95,14 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# CSS color injection
+# Apply CSS styling
 # -----------------------------
-# 'style = "<style>"
-# 'for part, val in values.items():
-#     'style += (
-#       '  f"#{part} {{ "
-#        ' f"fill: {get_color(val)} !important; "
-#        ' f"}} "
-#    ' )
-# 'style += "</style>"
 style = "<style>"
-for part, condition in values.items():
+for part in parts:
     style += (
         f"#{part} {{ "
-        f"fill: {get_color(condition)} !important; "
+        f"fill: {get_color(paint_values[part])} !important; "
+        f"{get_defect_style(defect_values[part])} "
         f"}} "
     )
 style += "</style>"
@@ -109,11 +113,14 @@ style += "</style>"
 st.markdown(style + svg, unsafe_allow_html=True)
 
 # -----------------------------
-# Legend (SAFE STRING)
+# Legends
 # -----------------------------
 st.markdown(
-    "### legend\n"
-    "- ≤160 µm → original paint\n"
-    "- 161–300 µm → repainted\n"
-    "- >300 µm → heavy repair / filler"
+    "### 🎨 paint condition legend\n"
+    "- Original paint → light green\n"
+    "- Repainted → medium green\n"
+    "- Heavy repair / filler → dark green\n\n"
+    "### 🛠 surface defect legend\n"
+    "- Scratch → dashed outline\n"
+    "- Denting → dotted outline"
 )
