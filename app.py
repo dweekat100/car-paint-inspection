@@ -75,19 +75,19 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# Paint coloring via CSS
+# Paint coloring (CSS)
 # -----------------------------
 style = "<style>"
 for part in parts:
-    style += (
-        f"#{part} {{ "
-        f"fill: {paint_color(paint_state[part])} !important; "
-        f"}} "
-    )
+    style += f"""
+    #{part} {{
+        fill: {paint_color(paint_state[part])} !important;
+    }}
+    """
 style += "</style>"
 
 # -----------------------------
-# Soft overlay markers (SVG)
+# Overlay markers (SOFT)
 # -----------------------------
 overlays = ""
 
@@ -100,27 +100,30 @@ for part in parts:
 
     if markers:
         overlays += f"""
-        <text
-            x="50%"
-            y="50%"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            font-size="26"
-            fill="#333"
-            opacity="0.55"
-            pointer-events="none"
-        >
-            {markers}
-        </text>
+        <g pointer-events="none">
+            <text
+                x="50%"
+                y="50%"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                font-size="22"
+                fill="#333"
+                opacity="0.55"
+            >
+                {markers}
+            </text>
+        </g>
         """
 
 # -----------------------------
-# Inject overlays before </svg>
+# SAFE SVG INSERT (CRITICAL FIX)
 # -----------------------------
-svg = svg.replace("</svg>", overlays + "</svg>")
+if "</svg>" in svg.lower():
+    head, tail = svg.rsplit("</svg>", 1)
+    svg = head + overlays + "</svg>" + tail
 
 # -----------------------------
-# Display SVG
+# Display
 # -----------------------------
 st.markdown(style + svg, unsafe_allow_html=True)
 
@@ -133,6 +136,6 @@ st.markdown(
 - **green shades** → paint condition  
 - **／** → minor scratch (localized)  
 - **●** → localized dent  
-*markers indicate attention only – refer to photos for detail*
+*markers are indicators only — see photos for detail*
 """
 )
