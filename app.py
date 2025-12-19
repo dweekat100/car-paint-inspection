@@ -1,14 +1,10 @@
 import streamlit as st
-from pathlib import Path
 
-# -----------------------------
-# Page setup
-# -----------------------------
 st.set_page_config(layout="wide")
-st.title("🚗 Car body paint inspection")
+st.title("🚗 car body paint inspection")
 
 # -----------------------------
-# Parts (MUST MATCH SVG IDs)
+# Parts (SVG IDs must match)
 # -----------------------------
 parts = [
     "rear_left_fender",
@@ -25,13 +21,13 @@ parts = [
 ]
 
 # -----------------------------
-# Color logic
+# Color logic (paint only)
 # -----------------------------
 def paint_color(condition):
     return {
-        "original": "#9BE7A2",
-        "repainted": "#3FAF6C",
-        "heavy_repair": "#1F6F43",
+        "original": "#9BE7A4",
+        "repainted": "#46B36B",
+        "heavy repair": "#1F7A4A"
     }[condition]
 
 # -----------------------------
@@ -39,85 +35,78 @@ def paint_color(condition):
 # -----------------------------
 st.sidebar.header("Inspection input")
 
-paint = {}
-scratch = {}
-dent = {}
+inspection = {}
 
 for part in parts:
     st.sidebar.subheader(part.replace("_", " ").title())
 
-    paint[part] = st.sidebar.selectbox(
+    paint = st.sidebar.selectbox(
         "Paint condition",
-        ["original", "repainted", "heavy_repair"],
-        key=f"paint_{part}",
+        ["original", "repainted", "heavy repair"],
+        key=f"{part}_paint"
     )
 
-    scratch[part] = st.sidebar.checkbox(
-        "Scratch",
-        key=f"scratch_{part}",
-    )
+    scratch = st.sidebar.checkbox("Scratch", key=f"{part}_scratch")
+    dent = st.sidebar.checkbox("Dent", key=f"{part}_dent")
 
-    dent[part] = st.sidebar.checkbox(
-        "Dent",
-        key=f"dent_{part}",
-    )
-
-# -----------------------------
-# Load SVG (ABSOLUTE SAFE LOAD)
-# -----------------------------
-svg_path = Path("car top view svg.svg")
-svg = svg_path.read_text(encoding="utf-8")
+    inspection[part] = {
+        "paint": paint,
+        "scratch": scratch,
+        "dent": dent
+    }
 
 # -----------------------------
-# Build CSS
+# Load SVG
 # -----------------------------
-css = "<style>"
+with open("car top view svg.svg", "r", encoding="utf-8") as f:
+    svg = f.read()
 
-for part in parts:
-    css += f"""
+# -----------------------------
+# CSS Injection (IMPORTANT)
+# -----------------------------
+style = "<style>"
+
+for part, data in inspection.items():
+    # Paint fill
+    style += f"""
     #{part} {{
-        fill: {paint_color(paint[part])} !important;
-        stroke: #444;
-        stroke-width: 1;
+        fill: {paint_color(data['paint'])} !important;
     }}
     """
 
-    if scratch[part]:
-        css += f"""
+    # Scratch (soft dashed)
+    if data["scratch"]:
+        style += f"""
         #{part} {{
-            stroke-dasharray: 5 4;
+            stroke: #f59e0b !important;
+            stroke-width: 3 !important;
+            stroke-dasharray: 6,4;
         }}
         """
 
-    if dent[part]:
-        css += f"""
+    # Dent (stronger dotted)
+    if data["dent"]:
+        style += f"""
         #{part} {{
-            stroke-width: 2.5;
-            stroke-dasharray: 2 6;
+            stroke: #ef4444 !important;
+            stroke-width: 4 !important;
+            stroke-dasharray: 2,6;
         }}
         """
 
-css += "</style>"
+style += "</style>"
 
 # -----------------------------
-# FINAL RENDER (THIS IS THE KEY)
+# Display SVG
 # -----------------------------
-st.components.v1.html(
-    css + svg,
-    height=700,
-    scrolling=False,
-)
+st.markdown(style + svg, unsafe_allow_html=True)
 
 # -----------------------------
 # Legend
 # -----------------------------
-st.markdown(
-    """
+st.markdown("""
 ### Legend
-- 🟢 Original paint
-- 🟢🟩 Repainted
-- 🟢⬛ Heavy repair
-- ┄ Scratch (dashed border)
-- ·· Dent (thicker dotted border)
-"""
-)
+- **Fill color** → paint condition  
+- **Dashed border** → scratch (see photos)  
+- **Dotted border** → dent (see photos)
+""")
