@@ -4,10 +4,10 @@ import streamlit as st
 # Page setup
 # -----------------------------
 st.set_page_config(layout="wide")
-st.title("🚗 car body paint & surface inspection")
+st.title("🚗 car body paint thickness inspection")
 
 # -----------------------------
-# Parts (SVG IDs MUST MATCH EXACTLY)
+# Parts (SVG IDs MUST MATCH)
 # -----------------------------
 parts = [
     "rear_left_fender",
@@ -32,10 +32,10 @@ parts = [
 # -----------------------------
 # Paint color logic
 # -----------------------------
-def get_color(condition):
-    if condition == "Original paint":
+def paint_color(state):
+    if state == "original":
         return "#8EE4A1"
-    elif condition == "Repainted":
+    elif state == "repainted":
         return "#3FAF6C"
     else:
         return "#0B3D1F"
@@ -45,37 +45,28 @@ def get_color(condition):
 # -----------------------------
 st.sidebar.header("inspection input")
 
-paint_options = [
-    "Original paint",
-    "Repainted",
-    "Heavy repair / filler",
-]
-
-defect_options = [
-    "None",
-    "Scratch",
-    "Denting",
-]
-
-paint_values = {}
-defect_values = {}
+paint_state = {}
+scratch_state = {}
+dent_state = {}
 
 for part in parts:
-    st.sidebar.markdown(f"**{part.replace('_', ' ')}**")
+    st.sidebar.subheader(part.replace("_", " ").title())
 
-    paint_values[part] = st.sidebar.selectbox(
-        "Paint condition",
-        paint_options,
+    paint_state[part] = st.sidebar.selectbox(
+        "paint condition",
+        ["original", "repainted", "heavy repair"],
         key=f"paint_{part}"
     )
 
-    defect_values[part] = st.sidebar.selectbox(
-        "Surface defect",
-        defect_options,
-        key=f"defect_{part}"
+    scratch_state[part] = st.sidebar.checkbox(
+        "scratch",
+        key=f"scratch_{part}"
     )
 
-    st.sidebar.markdown("---")
+    dent_state[part] = st.sidebar.checkbox(
+        "dent",
+        key=f"dent_{part}"
+    )
 
 # -----------------------------
 # Load SVG
@@ -84,62 +75,64 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# SVG pattern definitions (SCRATCH & DENTING)
-# -----------------------------
-pattern_defs = """
-<svg width="0" height="0" style="position:absolute">
-  <defs>
-    <!-- Scratch pattern -->
-    <pattern id="scratch" patternUnits="userSpaceOnUse" width="8" height="8">
-      <line x1="0" y1="8" x2="8" y2="0" stroke="black" stroke-width="1"/>
-    </pattern>
-
-    <!-- Denting pattern -->
-    <pattern id="dent" patternUnits="userSpaceOnUse" width="6" height="6">
-      <circle cx="3" cy="3" r="1.2" fill="black"/>
-    </pattern>
-  </defs>
-</svg>
-"""
-
-# -----------------------------
-# Apply CSS styling
+# Paint coloring via CSS
 # -----------------------------
 style = "<style>"
+for part in parts:
+    style += (
+        f"#{part} {{ "
+        f"fill: {paint_color(paint_state[part])} !important; "
+        f"}} "
+    )
+style += "</style>"
+
+# -----------------------------
+# Soft overlay markers (SVG)
+# -----------------------------
+overlays = ""
 
 for part in parts:
-    paint_color = get_color(paint_values[part])
-    defect = defect_values[part]
+    markers = ""
+    if scratch_state[part]:
+        markers += "／"
+    if dent_state[part]:
+        markers += " ●"
 
-    if defect == "Scratch":
-        fill_value = "url(#scratch)"
-    elif defect == "Denting":
-        fill_value = "url(#dent)"
-    else:
-        fill_value = paint_color
+    if markers:
+        overlays += f"""
+        <text
+            x="50%"
+            y="50%"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            font-size="26"
+            fill="#333"
+            opacity="0.55"
+            pointer-events="none"
+        >
+            {markers}
+        </text>
+        """
 
-    style += f"""
-    #{part} {{
-        fill: {fill_value} !important;
-    }}
-    """
-
-style += "</style>"
+# -----------------------------
+# Inject overlays before </svg>
+# -----------------------------
+svg = svg.replace("</svg>", overlays + "</svg>")
 
 # -----------------------------
 # Display SVG
 # -----------------------------
-st.markdown(style + pattern_defs + svg, unsafe_allow_html=True)
+st.markdown(style + svg, unsafe_allow_html=True)
 
 # -----------------------------
-# Legends
+# Legend
 # -----------------------------
 st.markdown(
-    "### 🎨 paint condition legend\n"
-    "- Original paint → light green\n"
-    "- Repainted → medium green\n"
-    "- Heavy repair / filler → dark green\n\n"
-    "### 🛠 surface defect legend\n"
-    "- Scratch → diagonal lines\n"
-    "- Denting → dotted pattern"
+    """
+### 🎨 legend
+- **green shades** → paint condition  
+- **／** → minor scratch (localized)  
+- **●** → localized dent  
+*markers indicate attention only – refer to photos for detail*
+"""
 )
