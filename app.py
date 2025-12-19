@@ -1,40 +1,43 @@
 import streamlit as st
+import base64
+import os
 
 st.set_page_config(layout="wide")
 st.title("🚗 car body paint inspection")
 
 # -----------------------------
-# Parts (SVG IDs must match)
+# Parts
 # -----------------------------
 parts = [
     "rear_left_fender",
     "rear_right_fender",
     "rear_left_door",
     "rear_right_door",
-    "front_left_fender",
-    "front_right_fender",
-    "front_left_door",
-    "front_right_door",
-    "hood",
-    "trunk",
-    "roof",
 ]
 
 # -----------------------------
-# Color logic (paint only)
+# Label positions (SVG coords)
 # -----------------------------
-def paint_color(condition):
-    return {
-        "original": "#9BE7A4",
-        "repainted": "#46B36B",
-        "heavy repair": "#1F7A4A"
-    }[condition]
+LABEL_POSITIONS = {
+    "rear_left_fender": (140, 220),
+    "rear_right_fender": (360, 220),
+    "rear_left_door": (150, 300),
+    "rear_right_door": (350, 300),
+}
 
 # -----------------------------
-# Sidebar inputs
+# Paint colors
+# -----------------------------
+PAINT_COLORS = {
+    "original": "#9BE7A4",
+    "repainted": "#46B36B",
+    "heavy repair": "#1F7A4A",
+}
+
+# -----------------------------
+# Sidebar
 # -----------------------------
 st.sidebar.header("Inspection input")
-
 inspection = {}
 
 for part in parts:
@@ -42,7 +45,7 @@ for part in parts:
 
     paint = st.sidebar.selectbox(
         "Paint condition",
-        ["original", "repainted", "heavy repair"],
+        list(PAINT_COLORS.keys()),
         key=f"{part}_paint"
     )
 
@@ -62,42 +65,87 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# CSS Injection (IMPORTANT)
+# Helper: image to base64
+# -----------------------------
+def img_to_base64(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, "rb") as img:
+        return base64.b64encode(img.read()).decode()
+
+# -----------------------------
+# CSS
 # -----------------------------
 style = "<style>"
 
+# paint
 for part, data in inspection.items():
-    # Paint fill
     style += f"""
     #{part} {{
-        fill: {paint_color(data['paint'])} !important;
+        fill: {PAINT_COLORS[data['paint']]} !important;
     }}
     """
 
-    # Scratch (soft dashed)
-    if data["scratch"]:
-        style += f"""
-        #{part} {{
-            stroke: #f59e0b !important;
-            stroke-width: 3 !important;
-            stroke-dasharray: 6,4;
-        }}
-        """
+# tooltip
+style += """
+.damage-label {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-    # Dent (stronger dotted)
-    if data["dent"]:
-        style += f"""
-        #{part} {{
-            stroke: #ef4444 !important;
-            stroke-width: 4 !important;
-            stroke-dasharray: 2,6;
-        }}
-        """
+.tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 6px;
+    display: none;
+    z-index: 1000;
+}
 
-style += "</style>"
+.label-wrapper:hover .tooltip {
+    display: block;
+}
+</style>
+"""
 
 # -----------------------------
-# Display SVG
+# Inject labels into SVG
+# -----------------------------
+labels_svg = ""
+
+for part, data in inspection.items():
+    if part not in LABEL_POSITIONS:
+        continue
+
+    x, y = LABEL_POSITIONS[part]
+
+    for damage in ["scratch", "dent"]:
+        if not data[damage]:
+            continue
+
+        img_path = f"damage_images/{part}_{damage}.jpg"
+        img64 = img_to_base64(img_path)
+
+        if not img64:
+            continue
+
+        labels_svg += f"""
+        <foreignObject x="{x}" y="{y}" width="120" height="40">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="label-wrapper">
+                <span class="damage-label">{damage.title()}</span>
+                <div class="tooltip">
+                    <img src="data:image/jpeg;base64,{img64}" width="200"/>
+                </div>
+            </div>
+        </foreignObject>
+        """
+
+# insert labels before closing svg
+svg = svg.replace("</svg>", labels_svg + "</svg>")
+
+# -----------------------------
+# Display
 # -----------------------------
 st.markdown(style + svg, unsafe_allow_html=True)
 
@@ -106,7 +154,7 @@ st.markdown(style + svg, unsafe_allow_html=True)
 # -----------------------------
 st.markdown("""
 ### Legend
-- **Fill color** → paint condition  
-- **Dashed border** → scratch (see photos)  
-- **Dotted border** → dent (see photos)
+- **Color** → paint condition  
+- **Text label** → localized issue  
+- **Hover label** → view real photo
 """)
