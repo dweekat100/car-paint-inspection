@@ -35,17 +35,17 @@ damage = {
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
-# 🔴 REMOVE XML HEADER (CRITICAL)
+# 1️⃣ Remove XML declaration
 svg = re.sub(r"<\?xml.*?\?>", "", svg).strip()
 
 # -----------------------------
-# Marker visibility logic
+# Marker logic
 # -----------------------------
 show_scratch = any(v in ["scratch", "scratch + dent"] for v in damage.values())
 show_dent = any(v in ["dent", "scratch + dent"] for v in damage.values())
 
 # -----------------------------
-# Inject CSS INSIDE SVG
+# CSS
 # -----------------------------
 style = f"""
 <style>
@@ -61,8 +61,13 @@ style = f"""
 </style>
 """
 
-# Inject style right after <svg>
-svg = svg.replace("<svg", f"<svg>{style}", 1)
+# 2️⃣ INSERT STYLE AFTER <svg ...>
+svg = re.sub(
+    r"(<svg[^>]*>)",
+    r"\1" + style,
+    svg,
+    count=1
+)
 
 # -----------------------------
 # Display
