@@ -4,10 +4,10 @@ import streamlit as st
 # Page setup
 # -----------------------------
 st.set_page_config(layout="wide")
-st.title("🚗 car body inspection (paint / scratch / dent)")
+st.title("🚗 car body paint & damage inspection")
 
 # -----------------------------
-# Parts list (MUST match SVG IDs)
+# Parts (MUST MATCH SVG anchor IDs)
 # -----------------------------
 parts = [
     "rear_left_fender",
@@ -18,18 +18,25 @@ parts = [
     "front_right_fender",
     "front_left_door",
     "front_right_door",
+    "hood",
+    "trunk",
+    "roof",
+    "roof_edge_left",
+    "roof_edge_right",
+    "right_step",
+    "left_step",
 ]
 
 # -----------------------------
-# Sidebar damage selection
+# Sidebar – Damage selection
 # -----------------------------
 st.sidebar.header("damage selection")
 
-damage = {}
+damage_values = {}
 for part in parts:
-    damage[part] = st.sidebar.selectbox(
-        part.replace("_", " ").title(),
-        ["none", "scratch", "dent", "both"],
+    damage_values[part] = st.sidebar.selectbox(
+        part.replace("_", " "),
+        ["none", "scratch", "dent", "scratch + dent"],
         index=0
     )
 
@@ -40,43 +47,45 @@ with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# CSS injection (THIS IS THE FIX)
+# Build CSS to activate markers
 # -----------------------------
 style = "<style>"
 
-for part, value in damage.items():
+for part, damage in damage_values.items():
+    anchor = f"#anchor_{part}"
 
-    scratch_id = f"#scratch_{part}"
-    dent_id = f"#dent_{part}"
-
-    if value == "scratch":
+    if damage == "scratch":
         style += f"""
-        {scratch_id} {{
+        {anchor} {{
             opacity: 1 !important;
-            stroke: #e67e22;
-            stroke-width: 2.5;
+            fill: none !important;
+            stroke: #ff9800 !important;
+            stroke-width: 2 !important;
         }}
         """
 
-    elif value == "dent":
+    elif damage == "dent":
         style += f"""
-        {dent_id} {{
+        {anchor} {{
             opacity: 1 !important;
-            stroke: #c0392b;
-            stroke-width: 2.5;
+            fill: #e53935 !important;
+            stroke: #b71c1c !important;
+            stroke-width: 1 !important;
         }}
         """
 
-    elif value == "both":
+    elif damage == "scratch + dent":
         style += f"""
-        {scratch_id}, {dent_id} {{
+        {anchor} {{
             opacity: 1 !important;
-            stroke-width: 2.5;
+            fill: #e53935 !important;
+            stroke: #ff9800 !important;
+            stroke-width: 2 !important;
+            stroke-dasharray: 4 2 !important;
         }}
-        {scratch_id} {{ stroke: #e67e22; }}
-        {dent_id} {{ stroke: #c0392b; }}
         """
 
+# Default = none → stays invisible
 style += "</style>"
 
 # -----------------------------
@@ -88,9 +97,9 @@ st.markdown(style + svg, unsafe_allow_html=True)
 # Legend
 # -----------------------------
 st.markdown("""
-### ℹ️ legend
-- **scratch** → light surface mark (partial)
-- **dent** → soft deformation (localized)
-- **both** → combined condition  
-*(markers indicate area to inspect photos more carefully)*
+### 🔍 damage legend
+- 🟠 **scratch** → surface damage (visual indicator only)
+- 🔴 **dent** → body deformation
+- 🔴🟠 **scratch + dent** → combined damage  
+*(hover markers later can open real photos)*
 """)
