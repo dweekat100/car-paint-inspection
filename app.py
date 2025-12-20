@@ -1,5 +1,4 @@
 import streamlit as st
-import re
 
 st.set_page_config(layout="wide")
 st.title("🚗 car body paint & damage inspection")
@@ -39,41 +38,41 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG
+# Load SVG (UNCHANGED)
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# Build SVG-INTERNAL styles
+# Build INTERNAL SVG styles
 # -----------------------------
-svg_style = "<style>\n"
+style_lines = ["<style>"]
 
 for part, value in damage.items():
     anchor = f"#anchor_{part}"
 
     if value == "scratch":
-        svg_style += f"""
+        style_lines.append(f"""
         {anchor} {{
             opacity: 1;
             fill: none;
             stroke: #ff9800;
             stroke-width: 2;
         }}
-        """
+        """)
 
     elif value == "dent":
-        svg_style += f"""
+        style_lines.append(f"""
         {anchor} {{
             opacity: 1;
             fill: #e53935;
             stroke: #b71c1c;
             stroke-width: 1;
         }}
-        """
+        """)
 
     elif value == "scratch + dent":
-        svg_style += f"""
+        style_lines.append(f"""
         {anchor} {{
             opacity: 1;
             fill: #e53935;
@@ -81,22 +80,18 @@ for part, value in damage.items():
             stroke-width: 2;
             stroke-dasharray: 4 2;
         }}
-        """
+        """)
 
-svg_style += "\n</style>"
-
-# -----------------------------
-# Inject style INSIDE SVG
-# -----------------------------
-svg = re.sub(
-    r"(<svg[^>]*>)",
-    r"\1\n" + svg_style,
-    svg,
-    count=1
-)
+style_lines.append("</style>")
+style_block = "\n".join(style_lines)
 
 # -----------------------------
-# Render
+# SAFE INSERT (NO REGEX)
+# -----------------------------
+svg = svg.replace("<svg", "<svg\n" + style_block, 1)
+
+# -----------------------------
+# Render SVG
 # -----------------------------
 st.markdown(svg, unsafe_allow_html=True)
 
