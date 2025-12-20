@@ -4,25 +4,16 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint & damage inspection")
 
 # -----------------------------
-# Parts (anchor IDs)
+# Parts (must match your logic)
 # -----------------------------
 parts = [
     "rear_left_fender",
     "rear_right_fender",
     "rear_left_door",
     "rear_right_door",
-    "front_left_fender",
-    "front_right_fender",
-    "front_left_door",
-    "front_right_door",
-    "hood",
-    "trunk",
-    "roof",
-    "roof_edge_left",
-    "roof_edge_right",
-    "left_step",
-    "right_step",
 ]
+
+damage_options = ["none", "scratch", "dent", "scratch + dent"]
 
 # -----------------------------
 # Sidebar
@@ -33,77 +24,64 @@ damage = {}
 for part in parts:
     damage[part] = st.sidebar.selectbox(
         part.replace("_", " "),
-        ["none", "scratch", "dent", "scratch + dent"],
-        0
+        damage_options,
+        index=0
     )
 
 # -----------------------------
-# Load SVG (unchanged)
+# Load SVG
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# Build SVG styles
+# CSS CONTROL (THE FIX)
 # -----------------------------
-styles = ["<style>"]
+style = """
+<style>
+#scratch_marker {
+    opacity: 0;
+    fill: #ff8c42;
+}
 
-for part, value in damage.items():
-    anchor = f"#anchor_{part}"
+#dent_marker {
+    opacity: 0;
+    fill: #e63946;
+}
+</style>
+"""
 
-    if value == "scratch":
-        styles.append(f"""
-        {anchor} {{
-            opacity: 1;
-            fill: none;
-            stroke: #ff9800;
-            stroke-width: 2;
-        }}
-        """)
+# Enable markers if ANY part uses them
+show_scratch = any(v in ["scratch", "scratch + dent"] for v in damage.values())
+show_dent = any(v in ["dent", "scratch + dent"] for v in damage.values())
 
-    elif value == "dent":
-        styles.append(f"""
-        {anchor} {{
-            opacity: 1;
-            fill: #e53935;
-            stroke: #b71c1c;
-            stroke-width: 1;
-        }}
-        """)
+if show_scratch:
+    style += """
+    <style>
+    #scratch_marker { opacity: 1; }
+    </style>
+    """
 
-    elif value == "scratch + dent":
-        styles.append(f"""
-        {anchor} {{
-            opacity: 1;
-            fill: #e53935;
-            stroke: #ff9800;
-            stroke-width: 2;
-            stroke-dasharray: 4 2;
-        }}
-        """)
-
-styles.append("</style>")
-style_block = "\n".join(styles)
+if show_dent:
+    style += """
+    <style>
+    #dent_marker { opacity: 1; }
+    </style>
+    """
 
 # -----------------------------
-# SAFE SVG INSERT (CRITICAL FIX)
+# Display
 # -----------------------------
-head, tail = svg.split(">", 1)
-svg = head + ">\n" + style_block + "\n" + tail
-
-# -----------------------------
-# Render SVG
-# -----------------------------
-st.markdown(svg, unsafe_allow_html=True)
+st.markdown(style + svg, unsafe_allow_html=True)
 
 # -----------------------------
 # Legend
 # -----------------------------
 st.markdown("""
 ### 🔍 damage legend
-- 🟠 **scratch** → surface damage (visual indicator)
+- 🟠 **scratch** → surface mark (visual indicator)
 - 🔴 **dent** → localized deformation
-- 🔴🟠 **scratch + dent** → combined condition  
+- 🟠🔴 **scratch + dent** → combined condition  
 
 *(markers guide user to inspect real photos carefully)*
 """)
