@@ -4,7 +4,7 @@ st.set_page_config(layout="wide")
 st.title("🚗 car body paint & damage inspection")
 
 # -----------------------------
-# Parts (must match anchor IDs)
+# Parts (anchor IDs)
 # -----------------------------
 parts = [
     "rear_left_fender",
@@ -38,21 +38,21 @@ for part in parts:
     )
 
 # -----------------------------
-# Load SVG (UNCHANGED)
+# Load SVG (unchanged)
 # -----------------------------
 with open("car top view svg.svg", "r", encoding="utf-8") as f:
     svg = f.read()
 
 # -----------------------------
-# Build INTERNAL SVG styles
+# Build SVG styles
 # -----------------------------
-style_lines = ["<style>"]
+styles = ["<style>"]
 
 for part, value in damage.items():
     anchor = f"#anchor_{part}"
 
     if value == "scratch":
-        style_lines.append(f"""
+        styles.append(f"""
         {anchor} {{
             opacity: 1;
             fill: none;
@@ -62,7 +62,7 @@ for part, value in damage.items():
         """)
 
     elif value == "dent":
-        style_lines.append(f"""
+        styles.append(f"""
         {anchor} {{
             opacity: 1;
             fill: #e53935;
@@ -72,7 +72,7 @@ for part, value in damage.items():
         """)
 
     elif value == "scratch + dent":
-        style_lines.append(f"""
+        styles.append(f"""
         {anchor} {{
             opacity: 1;
             fill: #e53935;
@@ -82,13 +82,14 @@ for part, value in damage.items():
         }}
         """)
 
-style_lines.append("</style>")
-style_block = "\n".join(style_lines)
+styles.append("</style>")
+style_block = "\n".join(styles)
 
 # -----------------------------
-# SAFE INSERT (NO REGEX)
+# SAFE SVG INSERT (CRITICAL FIX)
 # -----------------------------
-svg = svg.replace("<svg", "<svg\n" + style_block, 1)
+head, tail = svg.split(">", 1)
+svg = head + ">\n" + style_block + "\n" + tail
 
 # -----------------------------
 # Render SVG
@@ -103,5 +104,6 @@ st.markdown("""
 - 🟠 **scratch** → surface damage (visual indicator)
 - 🔴 **dent** → localized deformation
 - 🔴🟠 **scratch + dent** → combined condition  
+
 *(markers guide user to inspect real photos carefully)*
 """)
